@@ -16,7 +16,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended:true}))
 app.use(cors())
 
-app.post('/api/forma/', (req, res) => {
+app.post('/api/form/', (req, res) => {
 
     let data = req.body
     let smtpTransport = nodemailer.createTransport({
@@ -27,31 +27,43 @@ app.post('/api/forma/', (req, res) => {
           pass: PASS
         }
     })
-
-    let mailOptions = {
-        from: data.email,
-        to: USER,
-        subject: `Mensagem de ${data.name}`,
-        html: `
-        <h3>Informações do Formulário</h3>
-        <ul>
-            <li>Name: ${data.name}</li>
-            <li>Sobrenome: ${data.lastName}</li>
-            <li>E-mail: ${data.email}</li>
-        </ul>
-        <h3>Mensagem</h3>
-        <p>${data.message}</p>
-        `
+    let mailOptions = {}
+    
+    console.log('mail options', mailOptions)
+    
+    if (data.name && data.lastName && data.email && data.message) {
+        mailOptions = {
+            from: data.email,
+            to: USER,
+            subject: `Mensagem de ${data.name}`,
+            html: `
+            <h3>Informações do Formulário</h3>
+            <ul>
+                <li>Name: ${data.name}</li>
+                <li>Sobrenome: ${data.lastName}</li>
+                <li>E-mail: ${data.email}</li>
+            </ul>
+            <h3>Mensagem</h3>
+            <p>${data.message}</p>
+            `
+        }
+    } else {        
+        res.status(400).json({
+            erro: true,
+            mensagem: "Erro: E-mail não foi enviado!"
+        })
     }
 
     smtpTransport.sendMail(mailOptions, (error) => {
         if(error) {
+            console.info("entrou no erro!")
             res.status(400).json({
                 erro: true,
                 mensagem: "Erro: E-mail não foi enviado!"
             })
         }
         else {
+            console.info("Entrou no else");
             res.json({
                 erro: false,
                 mensagem: "E-mail enviado com sucesso!"
@@ -66,4 +78,3 @@ app.post('/api/forma/', (req, res) => {
 app.listen(PORT, ()=> {
     console.log(`Sessão iniciada na porta ${PORT}`);
 })
-
