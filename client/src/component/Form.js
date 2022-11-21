@@ -7,7 +7,8 @@ const Form = () => {
     const [lastName, setLastName] = useState('')
     const [email, setEmail] = useState('')
     const [message, setMessage] = useState('')
-    const [sent, setSent] = useState(false)
+    const [send, setSend] = useState(null)
+    const [load, setLoad] = useState(false)
 
     function formSubmit(e) {
         e.preventDefault();
@@ -18,15 +19,24 @@ const Form = () => {
             message: message
         }
 
-        axios.post('/api/forma', data)
-        .then(res => {
-            setSent(true)
-            resetForm()
-            console.log('resposta/Sucesso', res);
-        })
-        .catch((error) => {
-            console.log('menssagem não enviada', error);
-        })
+        if (name && lastName && email && message) {
+
+            console.log('Entrou na condição')
+            axios.post('/api/form/', data)
+            .then(res => {
+                setSend(true)
+                resetForm()
+                console.log('resposta/Sucesso', res)
+            })
+            .catch((error) => {
+                setSend(false)
+                console.log('Error:', error.stack)
+                resetForm()
+            })
+        } else {
+            setLoad(false)
+            console.log('entrou no else')
+        }
     }
 
     // form reseting initial data
@@ -35,10 +45,15 @@ const Form = () => {
         setLastName('')
         setEmail('')
         setMessage('')
+        setLoad(false)
 
         setTimeout(()=>{
-            setSent(false)
-        },3000)
+            setSend(null)
+        },4000)
+    }
+
+    function loading() {
+        setLoad(true)
     }
 
     return (
@@ -102,11 +117,38 @@ const Form = () => {
                 </div>
                 {/* end of single item */}
 
-                <div className={sent ? 'msg msgAppear' : 'msg'}>
-                    Mensagem enviada com sucesso!
+                { load !== false ?
+                <div className={load === true ? 'modal block' : 'modal'}>
+                    <div className='container'>
+                        <div className='loader'></div>
+                        <p>Enviando...</p>
+                    </div>
                 </div>
+                : 
+                <></>
+                }
+
+                {send !== null ?
+                <>
+                    <div className={send === true ? 'modal msgSuccess block' : 'modal msgSuccess'}>
+                        <div className='container'>
+                            <p>
+                                Mensagem enviada com sucesso!
+                            </p>
+                        </div>
+                    </div>
+                    <div className={send === false ? 'modal msgError block' : 'modal msgError'}>
+                        <div className='container'>
+                            <p>
+                                Falha ao enviar mensagem!
+                            </p>
+                        </div>
+                    </div>
+                </>
+                :
+                <></>}
                 <div className='btn'>
-                    <button type='submit'>
+                    <button type='submit' onClick={loading}>
                         Enviar
                     </button>
                 </div>
